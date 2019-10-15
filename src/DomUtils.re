@@ -1,5 +1,9 @@
 open Webapi.Dom;
 
+let getBody = () =>
+  (document |> Document.asHtmlDocument)
+  ->Belt.Option.flatMap(doc => doc |> HtmlDocument.body);
+
 let getBodyClasses = () =>
   (document |> Document.asHtmlDocument)
   ->Belt.Option.flatMap(doc => doc |> HtmlDocument.body)

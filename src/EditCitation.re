@@ -22,10 +22,17 @@ let make = () => {
   let (date, setDate) =
     React.useState(() => Js.Date.make() |> Utils.toInputDateFormat);
 
-  <form className=Classes.root>
+  let options: array(SingleSelect.selectOption(string)) = [|
+    {id: "1", name: "choose me", item: "1"},
+    {id: "2", name: "choose me 2", item: "2"},
+  |];
+
+  <form
+    className=Classes.root onSubmit={e => e->ReactEvent.Form.preventDefault}>
     <div className=Classes.header>
       {React.string("Someone said something cool?")}
     </div>
+    <SingleSelect options selectedId=None onChange={item => Js.log(item)} />
     <TextField label="Citation" placeholder="What was it?" multiline=true />
     <TextField label="Author" placeholder="Who was it?" />
     <TextField

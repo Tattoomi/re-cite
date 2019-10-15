@@ -61,10 +61,8 @@ let make = (~show, ~onClose, ~children) => {
   shouldRender
     ? <>
         <Overlay show />
-        <aside
-          onAnimationEnd
-          ref={ref->ReactDOMRe.Ref.domRef}
-          className={Classes.root(show)}>
+        // ref={ref->ReactDOMRe.Ref.domRef}
+        <aside onAnimationEnd className={Classes.root(show)}>
           <SidebarHeader onClose />
           children
         </aside>
