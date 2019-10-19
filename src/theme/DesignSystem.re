@@ -30,22 +30,74 @@ module Tokens = {
   type transitions = [ | `Modal];
 };
 
+let rec findMinStep = (test, i) => {
+  test(i) ? i : findMinStep(test, i + 1);
+};
+
 module Theme = {
   // base values
-  let baseFontSizePx = 20;
+  let baseFontSizePx = 22;
   let baseLineHeight = 1.4; // 28px
-  let baseLineGridPx = 4;
-  let headingLineHeight = 1.2;
+
+  let baseGridUnit = 4;
+  let headingLineHeight = 1.1;
+  let fontScale = 1.3;
+
+  let lineHeight = (fontSize, absLineHeight) => {
+    let minLineHeight = (fontSize |> float_of_int) *. absLineHeight;
+    let isNotLessThanAbs = factor =>
+      factor * baseGridUnit |> float_of_int > minLineHeight;
+
+    let factor = findMinStep(isNotLessThanAbs, 1);
+    factor * baseGridUnit;
+  };
+
+  let toScale = p =>
+    Js.Math.pow_float(~base=fontScale, ~exp=p |> float_of_int)
+    |> ( *. )(baseFontSizePx |> float_of_int)
+    |> int_of_float;
+
+  let numberOfFontVariants = 7;
+  let variants =
+    Belt.Array.make(numberOfFontVariants, 0)
+    ->Belt.Array.mapWithIndex((ind, _) => ind);
+  let fontSizes = variants->Belt.Array.map(factor => toScale(factor - 2));
+
+  let bodyLineHeights =
+    variants->Belt.Array.map(factor =>
+      lineHeight(fontSizes->Belt.Array.getExn(factor), baseLineHeight)
+    );
+  let headingLineHeights =
+    variants->Belt.Array.map(factor =>
+      lineHeight(fontSizes->Belt.Array.getExn(factor), headingLineHeight)
+    );
+
+  let getLineHeight = (variant, factor) =>
+    switch (variant) {
+    | `body => bodyLineHeights->Belt.Array.getExn(factor)->Css.px
+    | `heading => headingLineHeights->Belt.Array.getExn(factor)->Css.px
+    };
+
+  let getSize = ind => fontSizes->Belt.Array.getExn(ind)->Css.px;
+  let fontSize =
+    fun
+    | `xs => getSize(0)
+    | `sm => getSize(1)
+    | `base => getSize(2)
+    | `md => getSize(3)
+    | `lg => getSize(4)
+    | `xl => getSize(5)
+    | `xxl => getSize(6);
 
   let fontVariant =
     fun
-    | `xs => (`px(15), `px(18))
-    | `sm => (`px(18), `px(22))
-    | `md => (`px(24), `px(32))
-    | `lg => (`px(28), `px(34))
-    | `xl => (`px(35), `px(40))
-    | `xxl => (`px(44), `px(52))
-    | `base => (`px(baseFontSizePx), `abs(baseLineHeight));
+    | `xs => (fontSize(`xs), getLineHeight(`body, 0))
+    | `sm => (fontSize(`sm), getLineHeight(`body, 1))
+    | `base => (fontSize(`base), getLineHeight(`body, 2))
+    | `md => (fontSize(`md), getLineHeight(`body, 3))
+    | `lg => (fontSize(`lg), getLineHeight(`heading, 4))
+    | `xl => (fontSize(`xl), getLineHeight(`heading, 5))
+    | `xxl => (fontSize(`xxl), getLineHeight(`heading, 6));
 
   let space =
     fun
@@ -57,7 +109,7 @@ module Theme = {
     | `xl => 32
     | `xxl => 40
     | `xxxl => 48
-    | `custom(multiplier) => multiplier * baseLineGridPx;
+    | `custom(multiplier) => multiplier * baseGridUnit;
 
   let color = (token: Tokens.color) =>
     switch (token) {
