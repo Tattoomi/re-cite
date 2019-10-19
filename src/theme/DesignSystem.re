@@ -41,7 +41,7 @@ module Theme = {
 
   let baseGridUnit = 4;
   let headingLineHeight = 1.1;
-  let fontScale = 1.3;
+  let fontScale = 1.25;
 
   let lineHeight = (fontSize, absLineHeight) => {
     let minLineHeight = (fontSize |> float_of_int) *. absLineHeight;
